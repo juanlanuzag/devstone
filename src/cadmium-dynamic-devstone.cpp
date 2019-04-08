@@ -27,6 +27,7 @@
 #include <chrono>
 #include <algorithm>
 #include <fstream>
+#include <numeric>
 
 #include <boost/program_options.hpp>
 
@@ -107,35 +108,40 @@ int main(int argc, char* argv[]){
         abort();
     }
 
-    auto model_built = hclock::now();
+    // auto model_built = hclock::now();
 
-    cadmium::dynamic::engine::runner<TIME, cadmium::logger::not_logger> r(TOP_coupled, 0.0);
+    std::vector<double> times;
 
-    auto model_init = hclock::now();
+    for (int i=0;i< 5; i++) {
+        cadmium::dynamic::engine::runner<Time, cadmium::logger::not_logger> r(TOP_coupled, 0.0);
 
-    r.run_until_passivate();
+        auto model_init = hclock::now();
 
-    auto finished_simulation = hclock::now();
+        r.run_until(1000);
 
-    std::cout << "Simulation with params: ";
-
-    for (const auto& it : vm) {
-        std::cout << it.first.c_str() << ": ";
-        auto& value = it.second.value();
-        if (auto v = boost::any_cast<int>(&value))
-            std::cout << *v;
-        else if (auto v = boost::any_cast<std::string>(&value))
-            std::cout << *v;
-        else
-            std::cout << "error";
-        std::cout << " ";
+        auto finished_simulation = hclock::now();
+        times.push_back(std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( finished_simulation - model_init).count());
     }
 
+    std::cout << std::accumulate( times.begin(), times.end(), 0.0)/times.size()  << std::endl;
+//    std::cout << "Simulation with params: ";
+//
+//    for (const auto& it : vm) {
+//        std::cout << it.first.c_str() << ": ";
+//        auto& value = it.second.value();
+//        if (auto v = boost::any_cast<int>(&value))
+//            std::cout << *v;
+//        else if (auto v = boost::any_cast<std::string>(&value))
+//            std::cout << *v;
+//        else
+//            std::cout << "error";
+//        std::cout << " ";
+//    }
 
-    std::cout << std::endl;
-    std::cout << "time processing arguments: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( processed_parameters - start).count() << std::endl;
-    std::cout << "time constructing the models: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( model_built - processed_parameters).count() << std::endl;
-    std::cout << "time initializing the models: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( model_init - model_built).count() << std::endl;
-    std::cout << "time running simulation: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( finished_simulation - model_init).count() << std::endl;
-    std::cout << "total time: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( finished_simulation - start).count() << std::endl;
+
+//    std::cout << std::endl;
+//    std::cout << "time processing arguments: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( processed_parameters - start).count() << std::endl;
+//    std::cout << "time constructing the models: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( model_built - processed_parameters).count() << std::endl;
+//    std::cout << "time initializing the models: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( model_init - model_built).count() << std::endl;
+//    std::cout << "total time: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( finished_simulation - start).count() << std::endl;
 }
