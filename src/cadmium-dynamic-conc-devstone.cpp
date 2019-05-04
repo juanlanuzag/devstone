@@ -54,6 +54,7 @@ int main(int argc, char* argv[]){
             ("depth", po::value<int>()->required(), "set depth of the DEVStone: integer value")
             ("int-cycles", po::value<int>()->required(), "set the Dhrystone cycles to expend in internal transtions: integer value")
             ("ext-cycles", po::value<int>()->required(), "set the Dhrystone cycles to expend in external transtions: integer value")
+            ("threads", po::value<int>()->required(), "amount of threads to use")
             ("time-advance", po::value<int>()->default_value(1), "set the time expend in external transtions by the Dhrystone in miliseconds: integer value")
             ;
 
@@ -85,6 +86,7 @@ int main(int argc, char* argv[]){
     int int_cycles = vm["int-cycles"].as<int>();
     int ext_cycles = vm["ext-cycles"].as<int>();
     int time_advance = vm["time-advance"].as<int>();
+    int threads = vm["threads"].as<int>();
     //finished processing input
 
     auto processed_parameters = hclock::now();
@@ -112,7 +114,7 @@ int main(int argc, char* argv[]){
 
     std::vector<double> times;
 
-    cadmium::dynamic::engine::runner<Time, cadmium::logger::not_logger> r(TOP_coupled, 0.0);
+    cadmium::dynamic::engine::runner<Time, cadmium::logger::not_logger> r(TOP_coupled, 0.0, threads);
 
     auto model_init = hclock::now();
 
