@@ -73,7 +73,7 @@ std::shared_ptr<cadmium::dynamic::modeling::coupled<TIME>> create_HOmod_model(
             for(int idx_column=0; idx_column < width-1; idx_column++) {
                 cadmium::dynamic::modeling::Models models_col;
                 for(int idx_row=0; idx_row < idx_column + 2; idx_row++) {
-                    std::string atomic_name = "devstone_atomic_L" + std::to_string(level) + "_" + std::to_string(idx_column) + "," + std::to_string(idx_row);
+                    std::string atomic_name = "devstone_atomic_L" + std::to_string(level) + "_" + std::to_string(idx_column) + ";" + std::to_string(idx_row);
                     models_col.push_back(make_atomic_devstone(atomic_name));
                 }
                 atomics_current_level.push_back(models_col);

@@ -17,7 +17,7 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic --std=c++1z")
 endif()
 
-find_package(Boost COMPONENTS program_options unit_test_framework REQUIRED)
+find_package(Boost COMPONENTS program_options thread unit_test_framework REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -50,7 +50,7 @@ target_link_libraries(cadmium-devstone
                       ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )
 
-## Reference models used for developing and testing the model generators
+## Cadmium dynamic
 add_executable(cadmium-dynamic-devstone
                src/cadmium-dynamic-devstone.cpp
                src/cadmium-devstone-atomic.hpp src/cadmium-event-reader.hpp
@@ -62,6 +62,23 @@ target_include_directories(cadmium-dynamic-devstone
 target_link_libraries(cadmium-dynamic-devstone
         ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )
+
+## Cadmium dynamic, concurrent version
+add_executable(cadmium-dynamic-conc-devstone
+               src/cadmium-dynamic-devstone.cpp
+               src/cadmium-devstone-atomic.hpp src/cadmium-event-reader.hpp
+               events.txt
+)
+target_compile_definitions(cadmium-dynamic-conc-devstone
+                           PUBLIC CADMIUM_EXECUTE_CONCURRENT
+)
+target_include_directories(cadmium-dynamic-conc-devstone
+        PUBLIC ${PROJECT_SOURCE_DIR}/simulators/cadmium/include
+)
+target_link_libraries(cadmium-dynamic-conc-devstone ${Boost_LIBRARIES})
+
+
+
 
 ## Reference models used for developing and testing the model generators
 add_executable(cadmium-ref-LI

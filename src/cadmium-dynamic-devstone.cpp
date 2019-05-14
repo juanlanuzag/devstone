@@ -42,7 +42,6 @@ using hclock=std::chrono::high_resolution_clock;
 using Time=float;
 
 int main(int argc, char* argv[]){
-    auto start = hclock::now();
 
     // Declare the supported options.
     po::options_description desc("Allowed options");
@@ -54,6 +53,9 @@ int main(int argc, char* argv[]){
             ("int-cycles", po::value<int>()->required(), "set the Dhrystone cycles to expend in internal transtions: integer value")
             ("ext-cycles", po::value<int>()->required(), "set the Dhrystone cycles to expend in external transtions: integer value")
             ("time-advance", po::value<int>()->default_value(1), "set the time expend in external transtions by the Dhrystone in miliseconds: integer value")
+            #ifdef CADMIUM_EXECUTE_CONCURRENT
+            ("threads", po::value<int>()->required(), "amount of threads to use")
+            #endif //CADMIUM_EXECUTE_CONCURRENT
             ;
 
     po::variables_map vm;
@@ -84,15 +86,10 @@ int main(int argc, char* argv[]){
     int int_cycles = vm["int-cycles"].as<int>();
     int ext_cycles = vm["ext-cycles"].as<int>();
     int time_advance = vm["time-advance"].as<int>();
+    int threads = vm["threads"].as<int>();
     //finished processing input
 
     auto processed_parameters = hclock::now();
-
-    //create models for LI kind
-    // int models_quantity = (width - 1) * (depth - 1) + 1;
-    // int counted_atomic_models=0;
-    // int counted_coupled_models=0;
-
 
     std::shared_ptr<cadmium::dynamic::modeling::coupled<Time>> TOP_coupled;
     if (kind.compare("LI") == 0){
@@ -107,35 +104,18 @@ int main(int argc, char* argv[]){
         abort();
     }
 
-    auto model_built = hclock::now();
-
-    cadmium::dynamic::engine::runner<TIME, cadmium::logger::not_logger> r(TOP_coupled, 0.0);
+    #ifdef CADMIUM_EXECUTE_CONCURRENT
+        cadmium::dynamic::engine::runner<Time, cadmium::logger::not_logger> r(TOP_coupled, 0.0, threads);
+    #else
+        cadmium::dynamic::engine::runner<TIME, cadmium::logger::not_logger> r(TOP_coupled, 0.0);
+    #endif //CADMIUM_EXECUTE_CONCURRENT
 
     auto model_init = hclock::now();
 
-    r.run_until_passivate();
+    r.run_until(1000);
 
     auto finished_simulation = hclock::now();
 
-    std::cout << "Simulation with params: ";
 
-    for (const auto& it : vm) {
-        std::cout << it.first.c_str() << ": ";
-        auto& value = it.second.value();
-        if (auto v = boost::any_cast<int>(&value))
-            std::cout << *v;
-        else if (auto v = boost::any_cast<std::string>(&value))
-            std::cout << *v;
-        else
-            std::cout << "error";
-        std::cout << " ";
-    }
-
-
-    std::cout << std::endl;
-    std::cout << "time processing arguments: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( processed_parameters - start).count() << std::endl;
-    std::cout << "time constructing the models: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( model_built - processed_parameters).count() << std::endl;
-    std::cout << "time initializing the models: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( model_init - model_built).count() << std::endl;
-    std::cout << "time running simulation: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( finished_simulation - model_init).count() << std::endl;
-    std::cout << "total time: " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( finished_simulation - start).count() << std::endl;
+    std::cout << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>( finished_simulation - model_init).count() << std::endl;
 }
