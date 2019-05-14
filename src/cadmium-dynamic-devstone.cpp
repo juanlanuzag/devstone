@@ -86,7 +86,9 @@ int main(int argc, char* argv[]){
     int int_cycles = vm["int-cycles"].as<int>();
     int ext_cycles = vm["ext-cycles"].as<int>();
     int time_advance = vm["time-advance"].as<int>();
+    #ifdef CADMIUM_EXECUTE_CONCURRENT
     int threads = vm["threads"].as<int>();
+    #endif //CADMIUM_EXECUTE_CONCURRENT
     //finished processing input
 
     auto processed_parameters = hclock::now();
